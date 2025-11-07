@@ -11,6 +11,13 @@ namespace CustomMiddleWare.MiddleWare
 {
     public class MyCustomAuthorizationMiddleware(ILogger<MyCustomAuthorizationMiddleware> logger) : IMiddleware
     {
+        private (Type AttributeType, string RequiredType)[] roleRequirements =
+           [
+        (typeof(RequireTeacherHeaderAttribute), "teacher"),
+        (typeof(RequireStudentHeaderAttribute), "student"),
+        (typeof(RequireParentHeaderAttribute), "parent")
+           ];
+
         public async Task InvokeAsync(HttpContext context, RequestDelegate requestDelegate)
         {
 
@@ -45,39 +52,23 @@ namespace CustomMiddleWare.MiddleWare
 
         private async Task<bool> ValidateUserAuthentication(HttpContext context)
         {
-            bool result = false;
+            bool result = true;
+            Endpoint? endpoint = context.GetEndpoint();
 
-            var endpoint = context.GetEndpoint();
+            string userType = context.Request.Headers["usertype"].ToString().ToLowerInvariant();
 
-            var userType = context.Request.Headers["usertype"];
-            var requiresTeacher = endpoint?.Metadata.GetMetadata<RequireTeacherHeaderAttribute>() != null;
+            // Map of attribute types to required user type strings
 
-            var requiresStudent = endpoint?.Metadata.GetMetadata<RequireStudentHeaderAttribute>() != null;
 
-            var requiresParent = endpoint?.Metadata.GetMetadata<RequireParentHeaderAttribute>() != null;
+            (Type AttributeType, string RequiredType) = roleRequirements.FirstOrDefault(x => x.RequiredType.Contains(userType));
 
-            if (requiresTeacher && userType.ToString().ToLowerInvariant() != "teacher")
+
+            if (AttributeType != null && userType == RequiredType)
             {
-                result = await ValidateUserType(context, "");
+                result = await ValidateUserType(context, userType); // validate asynchronously
             }
 
-            else if (requiresStudent && userType.ToString().ToLowerInvariant() != "student")
-            {
-                result = await ValidateUserType(context, "");
-            }
-
-            else if (requiresParent && userType.ToString().ToLowerInvariant() != "parent")
-            {
-                result = await ValidateUserType(context, "");
-            }
-
-            else
-
-                result = true;
-
-
-            return result;
-
+            return result; // If no restrictions or userType matches
         }
     }
 }

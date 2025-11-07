@@ -10,6 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddScoped<MyCustomMiddleware>();
 
 builder.Services.AddScoped<MyCustomAuthorizationMiddleware>();
@@ -30,6 +32,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.MapHealthChecks("/api/health");
+
 app.MapControllers();
+
 
 app.Run();
