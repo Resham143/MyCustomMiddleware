@@ -55,19 +55,27 @@ namespace CustomMiddleWare.MiddleWare
             bool result = true;
             Endpoint? endpoint = context.GetEndpoint();
 
+
+
             string userType = context.Request.Headers["usertype"].ToString().ToLowerInvariant();
-
-            // Map of attribute types to required user type strings
-
 
             (Type AttributeType, string RequiredType) = roleRequirements.FirstOrDefault(x => x.RequiredType.Contains(userType));
 
+            string route = string.Empty;
 
-            if (AttributeType != null && userType == RequiredType)
+            if (endpoint != null && endpoint.Metadata.Count() > 14 && endpoint.Metadata.ElementAt(14) != null)
+            {
+                route = endpoint.Metadata.ElementAt(14)?.ToString() ?? string.Empty;
+            }
+
+            if (!string.IsNullOrEmpty(route) && route.ToLower().Contains(userType.ToLower()) && AttributeType != null && userType == RequiredType)
             {
                 result = await ValidateUserType(context, userType); // validate asynchronously
             }
-
+            else
+            {
+                result = await ValidateUserType(context, "");
+            }
             return result; // If no restrictions or userType matches
         }
     }
