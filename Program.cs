@@ -1,6 +1,8 @@
 using CustomMiddleWare.MiddleWare;
 using CustomMiddleWare.Middlewares;
 using Microsoft.AspNetCore.Builder;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +14,18 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddHealthChecks();
 
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddScoped<MyCustomMiddleware>();
 
 builder.Services.AddScoped<MyCustomAuthorizationMiddleware>();
+
+// builder.Services.AddSingleton<MyTelemeterLog>();
+
+builder.Services.AddOpenTelemetry().ConfigureResource(resource =>
+resource.AddService(serviceName: builder.Environment.ApplicationName).AddEnvironmentVariableDetector()).
+WithTracing(tracking => tracking.AddAspNetCoreInstrumentation().AddConsoleExporter()
+);
 
 var app = builder.Build();
 
@@ -22,6 +33,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
 }
 
 app.UseMiddleware<MyCustomMiddleware>();

@@ -63,12 +63,8 @@ namespace CustomMiddleWare.MiddleWare
 
             string route = string.Empty;
 
-            if (endpoint != null && endpoint.Metadata.Count() > 14 && endpoint.Metadata.ElementAt(14) != null)
-            {
-                route = endpoint.Metadata.ElementAt(14)?.ToString() ?? string.Empty;
-            }
 
-            if (!string.IsNullOrEmpty(route) && route.ToLower().Contains(userType.ToLower()) && AttributeType != null && userType == RequiredType)
+            if (AttributeType != null && userType == RequiredType)
             {
                 result = await ValidateUserType(context, userType); // validate asynchronously
             }
