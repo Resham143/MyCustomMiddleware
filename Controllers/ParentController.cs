@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CustomMiddleWare.MiddleWare.Attributes;
 using CustomMiddleWare.Models;
 using Microsoft.AspNetCore.Mvc;
+using OpenTelemetry.Logs;
 
 namespace CustomMiddleWare.Controllers
 {
@@ -22,9 +24,7 @@ namespace CustomMiddleWare.Controllers
         [HttpPost("profile")]
         public IActionResult GetProfile([FromBody] ProfileModel model)
         {
-            Console.Write($"name: {model.Name}  id:{model.Id}");
-
-            return Ok("This is a parent-only endpoint!");
+            return Ok(new SuccessResponseModel<ProfileModel> { Data = model});
         }
     }
 }

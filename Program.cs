@@ -1,6 +1,7 @@
 using CustomMiddleWare.MiddleWare;
 using CustomMiddleWare.Middlewares;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.OpenApi.Models;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -14,13 +15,18 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(swagger =>
+{
+    swagger.AddSecurityDefinition("usertype", new OpenApiSecurityScheme { In = ParameterLocation.Header, Name = "usertype", Type = SecuritySchemeType.ApiKey });
+});
+
+builder.Services.AddSingleton<MyTelemeterLog>();
 
 builder.Services.AddScoped<MyCustomMiddleware>();
 
 builder.Services.AddScoped<MyCustomAuthorizationMiddleware>();
 
-// builder.Services.AddSingleton<MyTelemeterLog>();
+
 
 builder.Services.AddOpenTelemetry().ConfigureResource(resource =>
 resource.AddService(serviceName: builder.Environment.ApplicationName).AddEnvironmentVariableDetector()).
@@ -41,6 +47,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<MyCustomMiddleware>();
 
 app.UseMiddleware<MyCustomAuthorizationMiddleware>();
+
+app.UseMiddleware<MyTelemeterLog>();
 
 app.UseHttpsRedirection();
 
